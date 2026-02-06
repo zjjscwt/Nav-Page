@@ -13,11 +13,6 @@ export async function getLinksData() {
     }
 }
 
-export async function saveLinksData(data: any) {
-    if (!process.env.KV_REST_API_URL) throw new Error("KV not configured");
-    await kv.set("nav_links", data);
-}
-
 export async function getWidgetConfig() {
     try {
         if (!process.env.KV_REST_API_URL) return null;
