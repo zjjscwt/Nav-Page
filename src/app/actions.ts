@@ -14,7 +14,8 @@ async function verifyAdmin() {
     const token = cookieStore.get("admin_token")?.value
 
     if (!token) {
-        console.log("Admin verification failed: No token found");
+        const allCookies = cookieStore.getAll().map(c => c.name).join(', ')
+        console.log(`Admin verification failed: No token found. Available cookies: [${allCookies}]`);
         return false
     }
 
@@ -37,7 +38,7 @@ export async function loginAction(prevState: any, formData: FormData) {
         const cookieStore = await cookies()
         cookieStore.set("admin_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'lax',
             path: '/', // 确保全站可用
             maxAge: 60 * 60 * 24 * 7
