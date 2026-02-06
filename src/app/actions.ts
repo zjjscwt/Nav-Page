@@ -9,47 +9,49 @@ import { revalidatePath } from "next/cache"
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key_change_me"
 
-async function verifyAdmin() {
+export async function getAdminStatus() {
     const cookieStore = await cookies()
     const token = cookieStore.get("admin_token")?.value
 
+    // 强制实时读取环境变量
+    const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
+
     if (!token) {
         const allCookies = cookieStore.getAll().map(c => c.name).join(', ')
-        console.log(`Admin verification failed: No token found. Available cookies: [${allCookies}]`);
+        console.log(`[Auth] No token found. Cookies in request: [${allCookies}]. JWT_SECRET length: ${secret.length}`);
         return false
     }
 
-    const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
     try {
         jwt.verify(token, secret)
         return true
     } catch (e: any) {
-        console.log("Admin verification failed: Invalid token", e.message);
+        console.log(`[Auth] Token invalid. Reason: ${e.message}. Secret length used: ${secret.length}`);
         return false
     }
 }
 
 export async function loginAction(prevState: any, formData: FormData) {
     const password = formData.get("password") as string
+    const adminPass = process.env.ADMIN_PASSWORD
 
-    if (password === ADMIN_PASSWORD) {
+    if (password === adminPass && adminPass) {
         const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
         const token = jwt.sign({ role: "admin" }, secret, { expiresIn: '7d' })
 
         const cookieStore = await cookies()
-
-        // 使用更通用的配置
         cookieStore.set("admin_token", token, {
             httpOnly: true,
             secure: true,
-            sameSite: 'none',  // 跨子域更强兼容性，配合 secure: true
+            sameSite: 'lax', // 顶级域名环境下 lax 是最稳健的
             path: '/',
             maxAge: 60 * 60 * 24 * 7
         })
 
-        return redirect("/") // 注意：在一些 Next.js 版本中，redirect 会抛出错误，必须在最后调用
+        return redirect("/")
     }
 
+    console.log(`[Login] Failed. Input length: ${password?.length || 0}, Env length: ${adminPass?.length || 0}`);
     return { error: "Invalid password" }
 }
 
@@ -61,7 +63,7 @@ export async function logoutAction() {
 
 export async function saveWidgetConfig(key: string, data: any) {
     try {
-        const isAdmin = await verifyAdmin()
+        const isAdmin = await getAdminStatus()
         if (!isAdmin) return { success: false, error: "Unauthorized" }
 
         if (!process.env.KV_REST_API_URL) {
@@ -85,7 +87,7 @@ export async function saveWidgetConfig(key: string, data: any) {
 
 export async function saveLinksAction(data: any) {
     try {
-        const isAdmin = await verifyAdmin()
+        const isAdmin = await getAdminStatus()
         if (!isAdmin) return { success: false, error: "Unauthorized" }
 
         if (!process.env.KV_REST_API_URL) {

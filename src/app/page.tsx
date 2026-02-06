@@ -11,17 +11,8 @@ import jwt from "jsonwebtoken";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-async function getAdminStatus() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token")?.value;
-  if (!token) return false;
-  try {
-    jwt.verify(token, process.env.JWT_SECRET || "default_secret_key_change_me");
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { getAdminStatus, saveLinksAction } from "@/app/actions";
+// 删除了重复的本地 getAdminStatus
 
 export default async function Home() {
   const isAdmin = await getAdminStatus();
