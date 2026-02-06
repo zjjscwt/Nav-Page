@@ -7,7 +7,7 @@ import { kv } from "@vercel/kv"
 import { revalidatePath } from "next/cache"
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key_for_dev_only"
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key_change_me"
 
 async function verifyAdmin() {
     const cookieStore = await cookies()
@@ -60,9 +60,9 @@ export async function saveWidgetConfig(key: string, data: any) {
         await kv.set("widget_config", currentConfig)
         revalidatePath("/")
         return { success: true }
-    } catch (e) {
-        console.error(e)
-        return { success: false, error: "Failed to save" }
+    } catch (e: any) {
+        console.error("KV Error:", e)
+        return { success: false, error: e.message || "Failed to save" }
     }
 }
 
@@ -79,8 +79,8 @@ export async function saveLinksAction(data: any) {
         await kv.set("nav_links", data)
         revalidatePath("/")
         return { success: true }
-    } catch (e) {
-        console.error(e)
-        return { success: false, error: "Failed to save links" }
+    } catch (e: any) {
+        console.error("KV Error (Links):", e)
+        return { success: false, error: e.message || "Failed to save links" }
     }
 }

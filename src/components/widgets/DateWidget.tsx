@@ -141,12 +141,21 @@ export function DateWidget({ isAdmin, initialConfig }: DateWidgetProps) {
 
     const handleSave = async () => {
         const newConfig = { events: editEvents }
+        const oldConfig = config
         setConfig(newConfig)
         setIsOpen(false)
         try {
-            await saveWidgetConfig("date", newConfig)
-        } catch (e) {
+            const result = await saveWidgetConfig("date", newConfig)
+            if (!result.success) {
+                alert(`保存失败: ${result.error}`)
+                setConfig(oldConfig)
+            } else if (result.mock) {
+                alert("提醒：由于未检测到 KV 环境变量，配置仅在本地模拟保存，刷新后将丢失。")
+            }
+        } catch (e: any) {
             console.error("Failed to save config", e)
+            alert(`保存出错: ${e.message || "未知错误"}`)
+            setConfig(oldConfig)
         }
     }
 
