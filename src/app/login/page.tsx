@@ -1,12 +1,21 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { loginAction } from "../actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Lock } from "lucide-react"
 
 export default function LoginPage() {
     const [state, action, isPending] = useActionState(loginAction, null)
+    const router = useRouter()
+
+    useEffect(() => {
+        if (state?.success) {
+            router.push("/")
+            router.refresh()
+        }
+    }, [state, router])
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">

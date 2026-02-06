@@ -50,16 +50,17 @@ export async function loginAction(prevState: any, formData: FormData) {
         const cookieStore = await cookies()
         cookieStore.set("admin_token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'lax', // 顶级域名环境下 lax 是最稳健的
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
             path: '/',
             maxAge: 60 * 60 * 24 * 7
         })
 
-        return redirect("/")
+        console.log(`[Login] Success. Token created, cookie set.`)
+        return { success: true }
     }
 
-    console.log(`[Login] Failed. Input length: ${password?.length || 0}, Env length: ${adminPass?.length || 0}`);
+    console.log(`[Login] Failed. Input length: ${password?.length || 0}, Env length: ${adminPass?.length || 0}`)
     return { error: "Invalid password" }
 }
 
