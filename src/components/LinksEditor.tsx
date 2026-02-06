@@ -41,8 +41,6 @@ export function LinksEditor({ initialLinks, isAdmin }: LinksEditorProps) {
             const result = await saveLinksAction(newGroups)
             if (!result.success) {
                 alert(`保存失败: ${result.error}`)
-            } else if (result.mock) {
-                alert("提醒：由于未检测到 KV 环境变量，数据仅在本地模拟保存，刷新后将丢失。请确保已在 Vercel 绑定 KV 存储。")
             }
         } catch (e: any) {
             console.error(e)
