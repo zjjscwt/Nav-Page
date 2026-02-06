@@ -9,7 +9,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "个人全栈导航页",
+  title: "导航页",
   description: "基于 Next.js 的个人高级仪表盘",
 };
 
