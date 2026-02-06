@@ -12,11 +12,18 @@ const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key_change_me"
 async function verifyAdmin() {
     const cookieStore = await cookies()
     const token = cookieStore.get("admin_token")?.value
-    if (!token) return false
+
+    if (!token) {
+        console.log("Admin verification failed: No token found");
+        return false
+    }
+
+    const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
     try {
-        jwt.verify(token, JWT_SECRET)
+        jwt.verify(token, secret)
         return true
-    } catch {
+    } catch (e: any) {
+        console.log("Admin verification failed: Invalid token", e.message);
         return false
     }
 }
@@ -25,11 +32,14 @@ export async function loginAction(prevState: any, formData: FormData) {
     const password = formData.get("password") as string
 
     if (password === ADMIN_PASSWORD) {
-        const token = jwt.sign({ role: "admin" }, JWT_SECRET, { expiresIn: '7d' })
+        const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
+        const token = jwt.sign({ role: "admin" }, secret, { expiresIn: '7d' })
         const cookieStore = await cookies()
         cookieStore.set("admin_token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/', // 确保全站可用
             maxAge: 60 * 60 * 24 * 7
         })
         redirect("/")
