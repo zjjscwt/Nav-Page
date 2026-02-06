@@ -2,7 +2,7 @@
 
 一个基于 Next.js 15 构建的个人导航仪表盘。采用玻璃拟态（Glassmorphism） design 风格，支持暗黑模式，并提供强大的组件化管理功能。
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyour-username%2Fyour-repo-name&env=ADMIN_PASSWORD,JWT_SECRET,FINNHUB_API_KEY&project-name=premium-dashboard&repository-name=premium-dashboard&integration-ids=oac_OT9900H0V6F64f981u3L2yYc)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fzjjsvwt%2FNav-Page&env=ADMIN_PASSWORD,JWT_SECRET,FINNHUB_API_KEY&project-name=nav-page&repository-name=nav-page&integration-ids=oac_OT9900H0V6F64f981u3L2yYc)
 
 ## ✨ 特性
 
