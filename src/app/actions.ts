@@ -7,14 +7,18 @@ import { kv } from "@vercel/kv"
 import { revalidatePath } from "next/cache"
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key_change_me"
+const JWT_SECRET = process.env.JWT_SECRET
 
 export async function getAdminStatus() {
     const cookieStore = await cookies()
     const token = cookieStore.get("admin_token")?.value
 
     // 强制实时读取环境变量
-    const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
+    const secret = process.env.JWT_SECRET
+    if (!secret) {
+        console.error("[Auth] JWT_SECRET environment variable is not set!")
+        return false
+    }
 
     if (!token) {
         const allCookies = cookieStore.getAll().map(c => c.name).join(', ')
@@ -36,7 +40,11 @@ export async function loginAction(prevState: any, formData: FormData) {
     const adminPass = process.env.ADMIN_PASSWORD
 
     if (password === adminPass && adminPass) {
-        const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
+        const secret = process.env.JWT_SECRET
+        if (!secret) {
+            console.error("[Login] JWT_SECRET environment variable is not set!")
+            return { error: "Server configuration error" }
+        }
         const token = jwt.sign({ role: "admin" }, secret, { expiresIn: '7d' })
 
         const cookieStore = await cookies()
@@ -57,7 +65,7 @@ export async function loginAction(prevState: any, formData: FormData) {
 
 export async function logoutAction() {
     const cookieStore = await cookies()
-    cookieStore.delete("app_session")
+    cookieStore.delete("admin_token")
     redirect("/")
 }
 
@@ -65,11 +73,6 @@ export async function saveWidgetConfig(key: string, data: any) {
     try {
         const isAdmin = await getAdminStatus()
         if (!isAdmin) return { success: false, error: "Unauthorized" }
-
-        if (!process.env.KV_REST_API_URL) {
-            console.log("Mock saving config:", key, data)
-            return { success: true, mock: true }
-        }
 
         let currentConfig: any = await kv.get("widget_config")
         if (!currentConfig || typeof currentConfig !== 'object') {
@@ -89,11 +92,6 @@ export async function saveLinksAction(data: any) {
     try {
         const isAdmin = await getAdminStatus()
         if (!isAdmin) return { success: false, error: "Unauthorized" }
-
-        if (!process.env.KV_REST_API_URL) {
-            console.log("Mock saving links:", JSON.stringify(data, null, 2))
-            return { success: true, mock: true }
-        }
 
         await kv.set("nav_links", data)
         revalidatePath("/")
