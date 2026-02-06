@@ -45,17 +45,19 @@ export async function logoutAction() {
 }
 
 export async function saveWidgetConfig(key: string, data: any) {
-    const isAdmin = await verifyAdmin()
-    if (!isAdmin) throw new Error("Unauthorized")
-
-    if (!process.env.KV_REST_API_URL) {
-        // In local dev without KV, we might just log or fail silently/gracefully
-        console.log("Mock saving config:", key, data)
-        return { success: true, mock: true }
-    }
-
     try {
-        const currentConfig = (await kv.get("widget_config")) as Record<string, any> || {}
+        const isAdmin = await verifyAdmin()
+        if (!isAdmin) return { success: false, error: "Unauthorized" }
+
+        if (!process.env.KV_REST_API_URL) {
+            console.log("Mock saving config:", key, data)
+            return { success: true, mock: true }
+        }
+
+        let currentConfig: any = await kv.get("widget_config")
+        if (!currentConfig || typeof currentConfig !== 'object') {
+            currentConfig = {}
+        }
         currentConfig[key] = data
         await kv.set("widget_config", currentConfig)
         revalidatePath("/")
@@ -67,15 +69,15 @@ export async function saveWidgetConfig(key: string, data: any) {
 }
 
 export async function saveLinksAction(data: any) {
-    const isAdmin = await verifyAdmin()
-    if (!isAdmin) throw new Error("Unauthorized")
-
-    if (!process.env.KV_REST_API_URL) {
-        console.log("Mock saving links:", JSON.stringify(data, null, 2))
-        return { success: true, mock: true }
-    }
-
     try {
+        const isAdmin = await verifyAdmin()
+        if (!isAdmin) return { success: false, error: "Unauthorized" }
+
+        if (!process.env.KV_REST_API_URL) {
+            console.log("Mock saving links:", JSON.stringify(data, null, 2))
+            return { success: true, mock: true }
+        }
+
         await kv.set("nav_links", data)
         revalidatePath("/")
         return { success: true }
