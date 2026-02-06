@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Lock } from "lucide-react"
 
@@ -9,7 +8,6 @@ export default function LoginPage() {
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [isPending, setIsPending] = useState(false)
-    const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -33,10 +31,8 @@ export default function LoginPage() {
             }
 
             if (data.success) {
-                // Small delay to ensure cookie is set
-                await new Promise(resolve => setTimeout(resolve, 100))
-                router.push("/")
-                router.refresh()
+                // Use full page reload to ensure cookies are properly sent
+                window.location.href = "/"
             }
         } catch (e: any) {
             setError(e.message || "Network error")
