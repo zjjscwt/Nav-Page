@@ -5,7 +5,7 @@ import { StockWidget } from "@/components/widgets/StockWidget";
 import { getLinksData, getWidgetConfig } from "@/lib/kv";
 import { LinksEditor } from "@/components/LinksEditor";
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { Settings, Save } from "lucide-react";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
@@ -37,14 +37,27 @@ export default async function Home() {
       {/* Header Controls */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
         <ThemeToggle />
-        {isAdmin && (
-          <div className="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold border border-primary/30 animate-pulse">
-            编辑模式
+        {isAdmin ? (
+          <div className="flex items-center gap-2 bg-background/80 backdrop-blur-md border border-primary/30 p-1 pl-3 rounded-full shadow-lg">
+            <span className="text-[10px] font-bold text-primary tracking-widest uppercase">编辑模式</span>
+            <Link
+              href="/api/auth/logout"
+              className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-bold hover:opacity-90 transition-all flex items-center gap-1.5"
+            >
+              <Save className="w-3 h-3" />
+              完成并退出
+            </Link>
           </div>
+        ) : (
+          <Link
+            href="/login"
+            className="p-2 text-muted-foreground hover:text-foreground transition-all flex items-center gap-1 hover:bg-secondary rounded-full"
+            title="管理员登录"
+          >
+            <Settings className="w-5 h-5 opacity-50" />
+            <span className="text-xs font-medium pr-1">管理</span>
+          </Link>
         )}
-        <Link href={isAdmin ? "/api/auth/logout" : "/login"} className="p-2 text-muted-foreground hover:text-foreground transition-colors relative">
-          <Settings className={`w-5 h-5 transition-all ${isAdmin ? "text-primary rotate-90" : "opacity-50 hover:opacity-100"}`} />
-        </Link>
       </div>
 
       <div className="max-w-7xl mx-auto space-y-8 pt-12">

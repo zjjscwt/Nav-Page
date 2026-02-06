@@ -35,15 +35,19 @@ export async function loginAction(prevState: any, formData: FormData) {
     if (password === ADMIN_PASSWORD) {
         const secret = process.env.JWT_SECRET || "default_secret_key_change_me"
         const token = jwt.sign({ role: "admin" }, secret, { expiresIn: '7d' })
+
         const cookieStore = await cookies()
+
+        // 使用更通用的配置
         cookieStore.set("admin_token", token, {
             httpOnly: true,
             secure: true,
-            sameSite: 'lax',
-            path: '/', // 确保全站可用
+            sameSite: 'none',  // 跨子域更强兼容性，配合 secure: true
+            path: '/',
             maxAge: 60 * 60 * 24 * 7
         })
-        redirect("/")
+
+        return redirect("/") // 注意：在一些 Next.js 版本中，redirect 会抛出错误，必须在最后调用
     }
 
     return { error: "Invalid password" }
