@@ -5,17 +5,14 @@ import { StockWidget } from "@/components/widgets/StockWidget";
 import { getLinksData, getWidgetConfig } from "@/lib/kv";
 import { LinksEditor } from "@/components/LinksEditor";
 import Link from "next/link";
-import { Settings, Save } from "lucide-react";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { Settings, LogOut } from "lucide-react";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-import { getAdminStatus, saveLinksAction } from "@/app/actions";
-// 删除了重复的本地 getAdminStatus
+import { auth, signOut } from "@/auth";
 
 export default async function Home() {
-  const isAdmin = await getAdminStatus();
+  const session = await auth();
+  const isAdmin = !!session?.user;
   const linksData: any = await getLinksData();
   const widgetConfig: any = await getWidgetConfig();
 
@@ -30,14 +27,23 @@ export default async function Home() {
         <ThemeToggle />
         {isAdmin ? (
           <div className="flex items-center gap-2 bg-background/80 backdrop-blur-md border border-primary/30 p-1 pl-3 rounded-full shadow-lg">
-            <span className="text-[10px] font-bold text-primary tracking-widest uppercase">编辑模式</span>
-            <Link
-              href="/api/auth/logout"
-              className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-bold hover:opacity-90 transition-all flex items-center gap-1.5"
+            <span className="text-[10px] font-bold text-primary tracking-widest uppercase">
+              {session.user?.name || "管理员"}
+            </span>
+            <form
+              action={async () => {
+                "use server"
+                await signOut({ redirectTo: "/" })
+              }}
             >
-              <Save className="w-3 h-3" />
-              完成并退出
-            </Link>
+              <button
+                type="submit"
+                className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-bold hover:opacity-90 transition-all flex items-center gap-1.5"
+              >
+                <LogOut className="w-3 h-3" />
+                退出
+              </button>
+            </form>
           </div>
         ) : (
           <Link
