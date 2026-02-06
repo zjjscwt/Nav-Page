@@ -1,21 +1,48 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { loginAction } from "../actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Lock } from "lucide-react"
 
 export default function LoginPage() {
-    const [state, action, isPending] = useActionState(loginAction, null)
+    const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
+    const [isPending, setIsPending] = useState(false)
     const router = useRouter()
 
-    useEffect(() => {
-        if (state?.success) {
-            router.push("/")
-            router.refresh()
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError("")
+        setIsPending(true)
+
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password }),
+                credentials: "include" // Important for cookies
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                setError(data.error || "Login failed")
+                setIsPending(false)
+                return
+            }
+
+            if (data.success) {
+                // Small delay to ensure cookie is set
+                await new Promise(resolve => setTimeout(resolve, 100))
+                router.push("/")
+                router.refresh()
+            }
+        } catch (e: any) {
+            setError(e.message || "Network error")
+            setIsPending(false)
         }
-    }, [state, router])
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
@@ -30,19 +57,21 @@ export default function LoginPage() {
                     <CardTitle className="text-2xl">管理员登录</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form action={action} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <input
                                 name="password"
                                 type="password"
                                 placeholder="输入管理员密码..."
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full h-12 px-4 rounded-lg border border-input bg-background/50 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                 required
                             />
                         </div>
-                        {state?.error && (
+                        {error && (
                             <div className="text-red-500 text-sm text-center font-medium bg-red-500/10 p-2 rounded">
-                                {state.error}
+                                {error}
                             </div>
                         )}
                         <button
